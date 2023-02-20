@@ -43,16 +43,13 @@ void SynthVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int numCh
 	spec.numChannels = numChannels;
 
 	gain.prepare(spec);
-	gain.setGainLinear(0.01f);
+	gain.setGainLinear(0.3f);
 	adsr.setSampleRate(sampleRate);
 
 	isPrepared = true;
 
 	this->sampleRate = sampleRate;
-
-	triangleWavetable.setSize(1, (int)tableSize);
-
-	WavetableOscillator::createWavetable(WavetableOscillator::TRIANGLE, triangleWavetable);
+	osc.setFrequency(440, sampleRate);
 }
 
 void SynthVoice::updateAdsr(const float attack, const float decay, const float sustain, const float release)
@@ -72,7 +69,7 @@ void SynthVoice::updateAmplitude(const float A)
 
 void SynthVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)
 {
-	if (!isVoiceActive()) return;
+	//if (!isVoiceActive()) return;
 
 	while (--numSamples >= 0)
 	{
@@ -88,8 +85,8 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
 		
 	}
 
-	if (!adsr.isActive())
-		clearCurrentNote();
+	/*if (!adsr.isActive())
+		clearCurrentNote();*/
 }
 
 void SynthVoice::pitchWheelMoved(int newPitchWheelValue)

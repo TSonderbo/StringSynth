@@ -13,17 +13,19 @@
 class WavetableOscillator
 {
 public:
-    WavetableOscillator(const juce::AudioSampleBuffer& wavetableToUse);
-
     enum Wavetype
     {
         TRIANGLE,
         SINE
     };
 
+    WavetableOscillator(juce::AudioSampleBuffer& wavetableToUse, Wavetype type);
+
+    
+
     void setFrequency(float frequency, float sampleRate);
     float getNextSample();
-    static void createWavetable(Wavetype wavetype, juce::AudioSampleBuffer wavetableToUse);
+    static void createWavetable(Wavetype wavetype, juce::AudioSampleBuffer& wavetableToUse);
 
     
 

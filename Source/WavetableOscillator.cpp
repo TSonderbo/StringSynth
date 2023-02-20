@@ -10,12 +10,13 @@
 
 #include "WavetableOscillator.h"
 
-WavetableOscillator::WavetableOscillator(const juce::AudioSampleBuffer& wavetableToUse)
+WavetableOscillator::WavetableOscillator(juce::AudioSampleBuffer& wavetableToUse, Wavetype type)
 	: wavetable(wavetableToUse),
 	tableSize(wavetable.getNumSamples() - 1),
 	tableSize_m1(tableSize - 1)
 {
-	jassert(wavetable.getNumChannels() == 1);
+	jassert(wavetableToUse.getNumChannels() == 1);
+	createWavetable(type, wavetableToUse);
 }
 
 
@@ -27,16 +28,16 @@ void WavetableOscillator::setFrequency(float frequency, float sampleRate)
 
 float WavetableOscillator::getNextSample()
 {
-	auto index0 = (unsigned int)currentIndex;
-	auto index1 = index0 == (tableSize_m1) ? (unsigned int)0 : index0 + 1;
+	unsigned int index0 = (unsigned int)currentIndex;
+	unsigned int index1 = index0 == (tableSize_m1) ? (unsigned int)0 : index0 + 1;
 
-	auto frac = currentIndex - (float)index0;
+	float frac = currentIndex - (float)index0;
 
 	auto* table = wavetable.getReadPointer(0);
-	auto value0 = table[index0];
-	auto value1 = table[index1];
+	float value0 = table[index0];
+	float value1 = table[index1];
 
-	auto currentSample = value0 + frac * (value1 - value0);
+	float currentSample = value0 + frac * (value1 - value0);
 
 	if ((currentIndex += tableDelta) > (float)tableSize)
 		currentIndex -= (float)tableSize;
@@ -44,7 +45,7 @@ float WavetableOscillator::getNextSample()
 	return currentSample;
 }
 
-void WavetableOscillator::createWavetable(Wavetype wavetype, juce::AudioSampleBuffer wavetableToUse)
+void WavetableOscillator::createWavetable(Wavetype wavetype, juce::AudioSampleBuffer& wavetableToUse)
 {
 	auto* samples = wavetableToUse.getWritePointer(0);
 	auto tableSize = wavetableToUse.getNumSamples();
@@ -86,7 +87,7 @@ void WavetableOscillator::buildTriangleWavetable(int tableSize, float* samples)
 	float phase = 0.0f;
 	for (unsigned int i = 0; i < tableSize; ++i)
 	{
-		auto sample = 0;
+		float sample = 0.0f;
 
 		if (phase < juce::MathConstants<float>::pi)
 			sample = -1 + (2 * 1 / juce::MathConstants<float>::pi) * phase;
@@ -95,11 +96,6 @@ void WavetableOscillator::buildTriangleWavetable(int tableSize, float* samples)
 
 		phase = phase + ((2 * juce::MathConstants<float>::pi) / tableSize);
 		samples[i] = (float)sample;
-
-		if (phase > juce::MathConstants<float>::twoPi)
-		{
-			DBG("Triangle Wavetable Loop iterated for too long");
-		}
 	}
 
 	samples[tableSize] = samples[0];

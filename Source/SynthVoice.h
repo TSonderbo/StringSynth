@@ -32,9 +32,9 @@ private:
 
 	juce::ADSR adsr;
 	juce::ADSR::Parameters adsrParams;
-	juce::AudioBuffer<float> triangleWavetable;
 	const unsigned int tableSize = 1 << 7;
-	WavetableOscillator osc { triangleWavetable };
+	juce::AudioBuffer<float> triangleWavetable{ 1, tableSize };
+	WavetableOscillator osc{triangleWavetable, WavetableOscillator::TRIANGLE};
 	juce::dsp::Gain<float> gain;
 	bool isPrepared = false;
 

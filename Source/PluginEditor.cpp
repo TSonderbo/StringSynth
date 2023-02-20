@@ -11,11 +11,13 @@
 
 //==============================================================================
 StringSynthAudioProcessorEditor::StringSynthAudioProcessorEditor (StringSynthAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), audioProcessor (p), oscilloscope(audioProcessor.getAudioBufferQueue())
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     setSize (400, 300);
+
+    addAndMakeVisible(oscilloscope);
 }
 
 StringSynthAudioProcessorEditor::~StringSynthAudioProcessorEditor()
@@ -30,11 +32,14 @@ void StringSynthAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void StringSynthAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
+    const float paddingX = 10;
+    const float paddingY = 10;
+
+    oscilloscope.setBounds(paddingX, paddingY, getWidth() - 2 * paddingX, getHeight() - 2 * paddingY);
 }

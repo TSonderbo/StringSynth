@@ -9,6 +9,10 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "SynthSound.h"
+#include "SynthVoice.h"
+#include "AudioBufferQueue.h"
+#include "ScopeDataCollector.h"
 
 //==============================================================================
 /**
@@ -23,6 +27,8 @@ public:
     StringSynthAudioProcessor();
     ~StringSynthAudioProcessor() override;
 
+
+    juce::AudioProcessorValueTreeState apvts;
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -56,7 +62,17 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    //==============================================================================
+    AudioBufferQueue& getAudioBufferQueue();
+
 private:
+    juce::Synthesiser synth;
+
+    juce::AudioProcessorValueTreeState::ParameterLayout createParams();
+
+    AudioBufferQueue audioBufferQueue;
+    ScopeDataCollector scopeDataCollector{ audioBufferQueue };
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StringSynthAudioProcessor)
 };
