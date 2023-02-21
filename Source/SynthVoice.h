@@ -13,6 +13,7 @@
 #include <JuceHeader.h>
 #include "SynthSound.h"
 #include "WavetableOscillator.h"
+#include "DelayLine.h"
 
 class SynthVoice : public juce::SynthesiserVoice
 {
@@ -29,6 +30,7 @@ public:
 private:
 
 	float A;
+	int inputSamples;
 
 	juce::ADSR adsr;
 	juce::ADSR::Parameters adsrParams;
@@ -37,6 +39,17 @@ private:
 	WavetableOscillator osc{triangleWavetable, WavetableOscillator::TRIANGLE};
 	juce::dsp::Gain<float> gain;
 	bool isPrepared = false;
-
+	DelayLine<float> delayLine;
+	size_t delay;
 	float sampleRate;
+	juce::dsp::IIR::Filter<float> lowpass;
+
+	juce::Random random;
+
+	float Ts;
+	//Decay
+	const float p = 0.9999999f;
+
+	float f1_p;
+	float S = 0.2f;
 };

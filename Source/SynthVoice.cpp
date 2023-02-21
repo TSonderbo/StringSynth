@@ -23,11 +23,16 @@ void SynthVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
 	double freq = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
 
 	osc.setFrequency(freq, sampleRate);
+	delay = (size_t)(sampleRate/freq);
+	inputSamples = (int)delay;
+
+	f1_p = -1 * (1 / (freq * log(abs(p * cos(juce::MathConstants<float>::pi * freq * Ts)))));
 }
 
 void SynthVoice::stopNote(float velocity, bool allowTailOff)
 {
 	adsr.noteOff();
+	
 }
 
 void SynthVoice::controllerMoved(int controllerNumber, int newControllerValue)
@@ -43,13 +48,28 @@ void SynthVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int numCh
 	spec.numChannels = numChannels;
 
 	gain.prepare(spec);
-	gain.setGainLinear(0.3f);
+	gain.setGainLinear(1.0f);
 	adsr.setSampleRate(sampleRate);
 
-	isPrepared = true;
+	//osc.setFrequency(100, sampleRate);
 
 	this->sampleRate = sampleRate;
-	osc.setFrequency(440, sampleRate);
+	delayLine.resize(3952); // Max B7
+
+	auto filterCoefs = juce::dsp::IIR::Coefficients<float>::makeFirstOrderLowPass(sampleRate, float(1e3));
+	lowpass.prepare(spec);
+	lowpass.coefficients = filterCoefs;
+
+	adsrParams.attack = 0.00001f;
+	adsrParams.decay = 0.3f;
+	adsrParams.sustain = 1.0f;
+	adsrParams.release = 0.2f;
+
+	adsr.setParameters(adsrParams);
+
+	Ts = 1.0f / sampleRate;
+
+	isPrepared = true;
 }
 
 void SynthVoice::updateAdsr(const float attack, const float decay, const float sustain, const float release)
@@ -69,11 +89,26 @@ void SynthVoice::updateAmplitude(const float A)
 
 void SynthVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)
 {
-	//if (!isVoiceActive()) return;
+	if (!isVoiceActive()) return;
 
 	while (--numSamples >= 0)
 	{
-		float sample = osc.getNextSample();
+		float sample = 0.0f;
+		if (inputSamples > 0)
+		{
+			//sample = osc.getNextSample();
+			sample = (random.nextFloat() * 2 - 1)* osc.getNextSample() ;
+			inputSamples--;
+		}
+		float S1 = delayLine.get(delay) * (1.0f - S);
+		float S2 = delayLine.get(delay + 1) * S;
+		sample += (S1 + S2);
+
+		//sample = lowpass.processSample(sample);
+
+		delayLine.push(sample);
+
+		sample *= adsr.getNextSample();
 
 		sample = gain.processSample(sample);
 
@@ -85,8 +120,12 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
 		
 	}
 
-	/*if (!adsr.isActive())
-		clearCurrentNote();*/
+	if (!adsr.isActive())
+	{
+		clearCurrentNote();
+		delayLine.clear();
+	}
+		
 }
 
 void SynthVoice::pitchWheelMoved(int newPitchWheelValue)

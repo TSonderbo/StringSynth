@@ -11,6 +11,10 @@
               file="Source/ScopeComponent.h"/>
       </GROUP>
       <GROUP id="{9399970F-43EA-8EDD-CEE8-77746360C3DB}" name="Util">
+        <GROUP id="{11040CEC-9567-084B-02B2-704084D2B75A}" name="Delay">
+          <FILE id="Wznzac" name="Delay.h" compile="0" resource="0" file="Source/Delay.h"/>
+          <FILE id="cEFB15" name="DelayLine.h" compile="0" resource="0" file="Source/DelayLine.h"/>
+        </GROUP>
         <FILE id="ijV8TR" name="ScopeDataCollector.cpp" compile="1" resource="0"
               file="Source/ScopeDataCollector.cpp"/>
         <FILE id="EeKGr2" name="ScopeDataCollector.h" compile="0" resource="0"
